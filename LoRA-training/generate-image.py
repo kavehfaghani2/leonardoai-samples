@@ -8,7 +8,7 @@ payload = {
     "modelId": "b24e16ff-06e3-43eb-8d33-4416c2d75876",
     "num_images": 4,
     "presetStyle": "DYNAMIC",
-    "prompt": "A dog looking happily at the camera",
+    "prompt": "A dogstockphoto looking happily at the camera",
     "width": 1024,
     "userElements": [
         {
