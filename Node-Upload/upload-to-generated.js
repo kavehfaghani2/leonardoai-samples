@@ -13,7 +13,7 @@ const HEADERS = {
 
 const IMAGE_FILE_PATH = "image.jpeg";
 
-async function uploadImageAndUpscale() {
+async function uploadAndGenerate() {
   try {
     // Step 1: Get a presigned URL for uploading an image
     let url = "https://cloud.leonardo.ai/api/rest/v1/init-image";
@@ -49,42 +49,40 @@ async function uploadImageAndUpscale() {
       throw new Error("Failed to upload image");
     }
 
-    // Step 3: Create upscale with Universal Upscaler
-    url = "https://cloud.leonardo.ai/api/rest/v1/variations/universal-upscaler";
-
+    // Step 3: Generate Image to Image
+    url = "https://cloud.leonardo.ai/api/rest/v1/generations";
     payload = {
-      ultraUpscaleStyle: "REALISTIC",
-      creativityStrength: 5,
-      detailContrast: 5,
-      similarity: 5,
-      upscaleMultiplier: 1.5,
-      initImageId: imageId,
+      height: 512,
+      modelId: "1e60896f-3c26-4296-8ecc-53e2afecc132", // Leonardo Diffusion XL
+      prompt: "An oil painting of a cat",
+      width: 512,
+      init_image_id: imageId, // Use uploaded image ID
+      init_strength: 0.5, // Must be between 0.1 and 0.9
     };
 
     response = await axios.post(url, payload, { headers: HEADERS });
-
-    console.log("Universal Upscaler Response:", response.data);
+    console.log("Generation of Images using Image to Image:", response.status);
 
     if (response.status !== 200) {
-      throw new Error("Failed to create upscale request");
+      throw new Error("Failed to create generation request");
     }
 
-    let variationId = response.data.universalUpscaler.id;
-    console.log("Variation ID:", variationId);
+    let generationId = response.data.sdGenerationJob.generationId;
+    console.log("Generation ID:", generationId);
 
-    // Step 4: Wait and get upscaled image via variation ID
-    url = `https://cloud.leonardo.ai/api/rest/v1/variations/${variationId}`;
+    // Step 4: Wait and get the generated images
+    url = `https://cloud.leonardo.ai/api/rest/v1/generations/${generationId}`;
 
-    console.log("Waiting for upscale to complete...");
-    await new Promise((resolve) => setTimeout(resolve, 60000)); // Wait 60 seconds
+    console.log("Waiting for image generation to complete...");
+    await new Promise((resolve) => setTimeout(resolve, 20000)); // Wait 20 seconds
 
     response = await axios.get(url, { headers: HEADERS });
 
-    console.log("Upscaled Image Response:", response.data);
+    console.log("Generated Image Response:", response.data);
 
   } catch (error) {
     console.error("Error:", error.response ? error.response.data : error.message);
   }
 }
 
-uploadImageAndUpscale();
+uploadAndGenerate();

@@ -13,7 +13,7 @@ const HEADERS = {
 
 const IMAGE_FILE_PATH = "image.jpeg";
 
-async function uploadImageAndUpscale() {
+async function uploadAndGenerateMotionVideo() {
   try {
     // Step 1: Get a presigned URL for uploading an image
     let url = "https://cloud.leonardo.ai/api/rest/v1/init-image";
@@ -49,42 +49,39 @@ async function uploadImageAndUpscale() {
       throw new Error("Failed to upload image");
     }
 
-    // Step 3: Create upscale with Universal Upscaler
-    url = "https://cloud.leonardo.ai/api/rest/v1/variations/universal-upscaler";
+    // Step 3: Generate Motion Video with the Uploaded Image
+    url = "https://cloud.leonardo.ai/api/rest/v1/generations-motion-svd";
 
     payload = {
-      ultraUpscaleStyle: "REALISTIC",
-      creativityStrength: 5,
-      detailContrast: 5,
-      similarity: 5,
-      upscaleMultiplier: 1.5,
-      initImageId: imageId,
+      imageId: imageId,
+      isInitImage: true,
+      motionStrength: 5, // Strength of motion effect
     };
 
     response = await axios.post(url, payload, { headers: HEADERS });
-
-    console.log("Universal Upscaler Response:", response.data);
+    console.log("Generate Video using Image:", response.status);
 
     if (response.status !== 200) {
-      throw new Error("Failed to create upscale request");
+      throw new Error("Failed to create motion video request");
     }
 
-    let variationId = response.data.universalUpscaler.id;
-    console.log("Variation ID:", variationId);
+    let generationId = response.data.motionSvdGenerationJob.generationId;
+    console.log("Generation ID:", generationId);
 
-    // Step 4: Wait and get upscaled image via variation ID
-    url = `https://cloud.leonardo.ai/api/rest/v1/variations/${variationId}`;
+    // Step 4: Wait and Get the Generated Video
+    url = `https://cloud.leonardo.ai/api/rest/v1/generations/${generationId}`;
 
-    console.log("Waiting for upscale to complete...");
+    console.log("Waiting for video generation to complete...");
     await new Promise((resolve) => setTimeout(resolve, 60000)); // Wait 60 seconds
 
     response = await axios.get(url, { headers: HEADERS });
 
-    console.log("Upscaled Image Response:", response.data);
+    console.log("Generated Video Response:", response.data);
 
   } catch (error) {
     console.error("Error:", error.response ? error.response.data : error.message);
   }
 }
 
-uploadImageAndUpscale();
+// Run the function
+uploadAndGenerateMotionVideo();
